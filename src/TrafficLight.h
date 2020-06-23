@@ -44,7 +44,7 @@ public:
     TrafficLightPhase getCurrenPhase();
 
     // typical behaviour methods
-    void waitForGreed();
+    void waitForGreen();
     void simulate();
 
 private:
