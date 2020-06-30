@@ -18,6 +18,7 @@ void MessageQueue<T>::send(T &&msg)
 {
     // FP.4a : The method send should use the mechanisms std::lock_guard<std::mutex> 
     // as well as _condition.notify_one() to add a new message to the queue and afterwards send a notification.
+    
 }
 
 
@@ -53,22 +54,27 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
-    std::random_device rd; 
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<std::chrono::milliseconds> distribution(std::chrono::milliseconds(4000), std::chrono::milliseconds(6000));
-    std::chrono::milliseconds  pastMilliseconds = std::chrono::milliseconds(0);
-    std::chrono::milliseconds currentMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-    pastMilliseconds = currentMilliseconds;
-    std::chrono::milliseconds haltTime = std::chrono::duration_cast<std::chrono::milliseconds>(distribution(gen));
+    std::random_device device;
+    std::mt19937 generator(device());
+    std::uniform_int_distribution<int> distribution(4000,6000);
+    int haltTimeRandom = distribution(generator);
+    std::cout << "haltTimeRandom = " << haltTimeRandom << std::endl;
+    std::chrono::milliseconds currentTime = std::chrono::duration_cast<std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
+    std::chrono::milliseconds pastTime = currentTime;
+    std::chrono::milliseconds haltTime = std::chrono::milliseconds(haltTimeRandom);
     while(true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        if (currentMilliseconds > haltTime) {
+        std::chrono::milliseconds timeDifference = currentTime - pastTime;
+        std::cout << "time difference = " << timeDifference.count() << std::endl;
+        if (timeDifference > haltTime) {
             this->_currentPhase = this->_currentPhase == TrafficLightPhase::green ? TrafficLightPhase::green : TrafficLightPhase::red;
-            pastMilliseconds = currentMilliseconds;
-            ///TODO: CALL THE QUEUE MESSAGE
+            pastTime = currentTime;
+            haltTimeRandom = distribution(generator);
+            haltTime = std::chrono::milliseconds(haltTimeRandom);
+            //TODO: CALL THE QUEUE MESSAGE
             
         }
-        currentMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - pastMilliseconds;
+        currentTime = std::chrono::duration_cast<std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
     }
 
 }
