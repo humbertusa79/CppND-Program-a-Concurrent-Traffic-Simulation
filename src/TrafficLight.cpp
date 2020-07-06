@@ -63,6 +63,7 @@ TrafficLightPhase TrafficLight::getCurrentPhase()
 void TrafficLight::simulate()
 {
     // FP.2b : Finally, the private method „cycleThroughPhases“ should be started in a thread when the public method „simulate“ is called. To do this, use the thread queue in the base class. 
+     threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this)); 
 }
 
 // virtual function which is executed in a thread
@@ -76,19 +77,21 @@ void TrafficLight::cycleThroughPhases()
     std::mt19937 generator(device());
     std::uniform_int_distribution<int> distribution(4000,6000);
     int haltTimeRandom = distribution(generator);
-    std::cout << "haltTimeRandom = " << haltTimeRandom << std::endl;
     std::chrono::milliseconds currentTime = std::chrono::duration_cast<std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
     std::chrono::milliseconds pastTime = currentTime;
     std::chrono::milliseconds haltTime = std::chrono::milliseconds(haltTimeRandom);
     while(true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         std::chrono::milliseconds timeDifference = currentTime - pastTime;
-        std::cout << "time difference = " << timeDifference.count() << std::endl;
+        //std::cout << "time difference = " << timeDifference.count() << std::endl;
         if (timeDifference > haltTime) {
-            this->_currentPhase = this->_currentPhase == TrafficLightPhase::green ? TrafficLightPhase::green : TrafficLightPhase::red;
+            //std::cout << "inside the if .........thread id " << std::this_thread::get_id() << std::endl;
+            //std::cout << "timeDifference" << timeDifference .count() << std::endl;
+            this->_currentPhase = this->_currentPhase == TrafficLightPhase::red? TrafficLightPhase::green : TrafficLightPhase::red;
             pastTime = currentTime;
             haltTimeRandom = distribution(generator);
             haltTime = std::chrono::milliseconds(haltTimeRandom);
+            //std::cout << "new halttime" << haltTime.count()  << std::endl;
             _messageQueue.send(std::move(this->_currentPhase));
         }
         currentTime = std::chrono::duration_cast<std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch());
