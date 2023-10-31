@@ -10,6 +10,10 @@ Vehicle::Vehicle()
     _posStreet = 0.0;
     _type = ObjectType::objectVehicle;
     _speed = 400; // m/s
+    
+    
+    
+    
 }
 
 
